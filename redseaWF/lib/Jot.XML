@@ -1,0 +1,624 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Jot</name>
+    </assembly>
+    <members>
+        <member name="T:Jot.DefaultInitializer.DefaultConfigurationInitializer">
+            <summary>
+            Default initializer that will be used if a more specific initializer is not specified. 
+            Enables [Trackable] and [TrackingKey] attributes, ITrackingAware and ITriggerPersist interfaces.
+            Can be overriden to allow additional initialization logic for a specific type. If you do not wish 
+            to keep the logic that deals with [Trackable], [TrackingKey], ITrackingAware and ITriggerPersist, 
+            implement IConfigurationInitializer directly instead.
+            </summary>
+        </member>
+        <member name="P:Jot.DefaultInitializer.DefaultConfigurationInitializer.ForType">
+            <summary>
+            Applies to type System.Object
+            </summary>
+        </member>
+        <member name="M:Jot.DefaultInitializer.DefaultConfigurationInitializer.InitializeConfiguration(Jot.TrackingConfiguration)">
+            <summary>
+            Initializes the tracking configuration for a target object
+            </summary>
+            <param name="configuration"></param>
+        </member>
+        <member name="T:Jot.DefaultInitializer.ITrackingAware">
+            <summary>
+            Allows the object that is being tracked to customize
+            its persitence
+            </summary>
+        </member>
+        <member name="M:Jot.DefaultInitializer.ITrackingAware.InitConfiguration(Jot.TrackingConfiguration)">
+            <summary>
+            Called when the object's tracking configuration is first created.
+            </summary>
+            <param name="configuration"></param>
+            <returns>Return false to cancel applying state</returns>
+        </member>
+        <member name="T:Jot.DefaultInitializer.TrackableAttribute">
+            <summary>
+            If applied to a property specifies if the property should be tracked.
+            </summary>
+        </member>
+        <member name="P:Jot.DefaultInitializer.TrackableAttribute.TrackerName">
+            <summary>
+            The name of the StateTracker that will care about this attribute. Useful for scenarios with multiple state trackers (e.g. one per-user, another per-machine).
+            </summary>
+        </member>
+        <member name="T:Jot.DefaultInitializer.TrackingKeyAttribute">
+            <summary>
+            Marks the property as the tracking identifier for the object.
+            The property will in most cases be of type String, Guid or Int
+            </summary>
+        </member>
+        <member name="T:Jot.CustomInitializers.FormConfigurationInitializer">
+            <summary>
+            Initializes the tracking configuration for a (WinForms) Form object. 
+            </summary>
+        </member>
+        <member name="P:Jot.CustomInitializers.FormConfigurationInitializer.ForType">
+            <summary>
+            Applies to objects of type System.Windows.Forms.Form
+            </summary>
+        </member>
+        <member name="M:Jot.CustomInitializers.FormConfigurationInitializer.InitializeConfiguration(Jot.TrackingConfiguration)">
+            <summary>
+            Adds Height/Width/Top/Left/Windows state to the list of properties to track. Uses
+            the "ResizeEnd" to trigger persist. Handles validation for edge cases (2nd display
+            disconnected, saving size info while minimized/maximized).
+            </summary>
+            <param name="configuration"></param>
+        </member>
+        <member name="T:Jot.CustomInitializers.WindowConfigurationInitializer">
+            <summary>
+            Sets up the tracking configuration for WPF Window objects
+            </summary>
+        </member>
+        <member name="P:Jot.CustomInitializers.WindowConfigurationInitializer.ForType">
+            <summary>
+            Applies to object of type System.windows.Window
+            </summary>
+        </member>
+        <member name="M:Jot.CustomInitializers.WindowConfigurationInitializer.InitializeConfiguration(Jot.TrackingConfiguration)">
+            <summary>
+            Adds Height/Width/Top/Left/WindowState to list of tracked properties. Uses
+            the "Sizechanged" event to trigger persistence. Handles validation for edge
+            cases (2nd display disconnected between application shutdown and restart).
+            </summary>
+            <param name="configuration"></param>
+        </member>
+        <member name="T:Jot.IConfigurationInitializer">
+            <summary>
+            Provides a mechanism for initializing the configuration for tracking objects of a certain type.
+            </summary>
+        </member>
+        <member name="P:Jot.IConfigurationInitializer.ForType">
+            <summary>
+            Type the initializer applies to. 
+            </summary>
+            <remarks>
+            The most specific initializer will be applied.
+            </remarks>
+        </member>
+        <member name="M:Jot.IConfigurationInitializer.InitializeConfiguration(Jot.TrackingConfiguration)">
+            <summary>
+            Initializes the configuration object as needed.
+            </summary>
+            <param name="configuration"></param>
+        </member>
+        <member name="T:Jot.NamingScheme">
+            <summary>
+            Naming scheme for Storaname (defines filename format, where is the configuration stored).
+            </summary>
+        </member>
+        <member name="F:Jot.NamingScheme.TypeNameAndKey">
+            <summary>
+            {TypeName}_{key}
+            </summary>
+        </member>
+        <member name="F:Jot.NamingScheme.KeyOnly">
+            <summary>
+            {key}
+            </summary>
+        </member>
+        <member name="T:Jot.Storage.IStoreFactory">
+            <summary>
+            Interface for objects that are responsible for creating data stores (implementations of IStore) for tracked objects.
+            </summary>
+            <remarks>
+            Each tracked object has it's own data store, which is why the factory pattern is used.
+            </remarks>
+        </member>
+        <member name="M:Jot.Storage.IStoreFactory.CreateStoreForObject(System.String)">
+            <summary>
+            Creates a data store for the specified id.
+            </summary>
+            <param name="objectId">The id of othe object to which the store will belong.</param>
+            <returns></returns>
+        </member>
+        <member name="T:Jot.Storage.JsonFileStoreFactory">
+            <summary>
+            Creates JsonFileStore instances for storing target object data.
+            </summary>
+        </member>
+        <member name="P:Jot.Storage.JsonFileStoreFactory.StoreFolderPath">
+            <summary>
+            The folder in which the store files will be located.
+            </summary>
+        </member>
+        <member name="M:Jot.Storage.JsonFileStoreFactory.#ctor">
+            <summary>
+            Creates a JsonFileStoreFactory that will store files in a per-user folder (%appdata%\[companyname]\[productname]). 
+            </summary>
+            <remarks>
+            CompanyName and ProductName are read from the entry assembly's attributes.
+            </remarks>
+        </member>
+        <member name="M:Jot.Storage.JsonFileStoreFactory.#ctor(System.Boolean)">
+            <summary>
+            Creates a JsonFileStoreFactory that will store files in a per-user or per-machine folder. (%appdata% or %allusersprofile%  + \[companyname]\[productname]). 
+            </summary>
+            <param name="perUser">Specified if a per-user or per-machine folder will be used for storing the data.</param>
+            <remarks>
+            CompanyName and ProductName are read from the entry assembly's attributes.
+            </remarks>
+        </member>
+        <member name="M:Jot.Storage.JsonFileStoreFactory.#ctor(System.Environment.SpecialFolder)">
+            <summary>
+            Creates a JsonFileStoreFactory that will store files in the specified folder.
+            </summary>
+            <param name="folder">The folder inside which the json files for tracked objects will be stored.</param>
+        </member>
+        <member name="M:Jot.Storage.JsonFileStoreFactory.#ctor(System.String)">
+            <summary>
+            Creates a JsonFileStoreFactory that will store files in the specified folder.
+            </summary>
+            <param name="storeFolderPath">The folder inside which the json files for tracked objects will be stored.</param>
+        </member>
+        <member name="M:Jot.Storage.JsonFileStoreFactory.CreateStoreForObject(System.String)">
+            <summary>
+            Creates a JsonFileStore for the object with the specified id. The Id needs to be a valid file name without the file extension!
+            </summary>
+        </member>
+        <member name="T:Jot.Storage.Stores.JsonFileStore">
+            <summary>
+            An implementation of IStore that saves data to a json file.
+            </summary>
+        </member>
+        <member name="P:Jot.Storage.Stores.JsonFileStore.FilePath">
+            <summary>
+            The file that will store the target object's data.
+            </summary>
+        </member>
+        <member name="M:Jot.Storage.Stores.JsonFileStore.#ctor(System.String)">
+            <summary>
+            Creates a new instance of a JsonFileStore.
+            </summary>
+            <param name="filePath"></param>
+        </member>
+        <member name="M:Jot.Storage.Stores.JsonFileStore.LoadValues">
+            <summary>
+            Loads values from the json file into the dictionary cache.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Jot.Storage.Stores.JsonFileStore.SaveValues(System.Collections.Generic.Dictionary{System.String,System.Object})">
+            <summary>
+            Stores the values from the dictioanry cache into the json file.
+            </summary>
+            <param name="values"></param>
+        </member>
+        <member name="T:Jot.Storage.IStore">
+            <summary>
+            Implementors of this interface delare that they can store and retrieve arbitrary objects. 
+            SettingsTracker uses an implementation of this interface to store and retrieve property values. 
+            <remarks>
+            One could easily implement this interface to use for example MongoDB to save property values
+            </remarks>
+            </summary>
+        </member>
+        <member name="M:Jot.Storage.IStore.ContainsKey(System.String)">
+            <summary>
+            Indicates if the store contains data for the specified key.
+            </summary>
+            <param name="key">The key too look for.</param>
+            <returns>True if the store contains data for the specified key, otherwise False.</returns>
+        </member>
+        <member name="M:Jot.Storage.IStore.Set(System.Object,System.String)">
+            <summary>
+            Stores a value for the specified key.
+            </summary>
+            <param name="value">The value to store.</param>
+            <param name="key">The key that identifies the stored value, i.e. the name of the property whose value is stored.</param>
+        </member>
+        <member name="M:Jot.Storage.IStore.Get(System.String)">
+            <summary>
+            Gets the value stored under the specified key.
+            </summary>
+            <param name="key">The key that identifies the value to return.</param>
+            <returns>The value stored under the specified key</returns>
+        </member>
+        <member name="M:Jot.Storage.IStore.CommitChanges">
+            <summary>
+            Commits the new data to the store. For a file-based store, this is where data should be written to the file.
+            </summary>
+        </member>
+        <member name="T:Jot.Storage.PersistentStoreBase">
+            <summary>
+            Base class for objects that serialize and persist data. Keeps all data in a dictionary, and loads/saves the dictionary when necessary.
+            </summary>
+        </member>
+        <member name="M:Jot.Storage.PersistentStoreBase.ContainsKey(System.String)">
+            <summary>
+            Indicates if the store contains data for the specified key.
+            </summary>
+            <param name="identifier">The identifier too look for.</param>
+            <returns>True if the store contains data for the specified key, otherwise False.</returns>
+        </member>
+        <member name="M:Jot.Storage.PersistentStoreBase.Set(System.Object,System.String)">
+            <summary>
+            Stores a value for the specified key.
+            </summary>
+            <param name="value">The value to store.</param>
+            <param name="key">The key that identifies the stored value, i.e. the name of the property whose value is stored.</param>
+        </member>
+        <member name="M:Jot.Storage.PersistentStoreBase.Get(System.String)">
+            <summary>
+            Gets the value stored under the specified key.
+            </summary>
+            <param name="key">The key that identifies the value to return.</param>
+            <returns>The value stored under the specified key</returns>
+        </member>
+        <member name="M:Jot.Storage.PersistentStoreBase.CommitChanges">
+            <summary>
+            Commits the new data to the store. For a file-based store, this is where data should be written to the file.
+            </summary>
+        </member>
+        <member name="M:Jot.Storage.PersistentStoreBase.LoadValues">
+            <summary>
+            Loads values from the backing storage into a dictionary.
+            </summary>
+            <returns>A dictionary with the retrieved values.</returns>
+        </member>
+        <member name="M:Jot.Storage.PersistentStoreBase.SaveValues(System.Collections.Generic.Dictionary{System.String,System.Object})">
+            <summary>
+            Persists the dictionary of values to a backing store.
+            </summary>
+            <param name="values">The values to store.</param>
+        </member>
+        <member name="T:Jot.Triggers.DesktopPersistTrigger">
+            <summary>
+            An implementation of ITriggerPersist that fires PersistRequired when a desktop application is about to shut down. 
+            Applicable to WinForms and WPF applications.
+            </summary>
+        </member>
+        <member name="M:Jot.Triggers.DesktopPersistTrigger.#ctor">
+            <summary>
+            Creates a new instance of DesktopPersistTrigger.
+            </summary>
+        </member>
+        <member name="E:Jot.Triggers.DesktopPersistTrigger.PersistRequired">
+            <summary>
+            Fired when a desktop application is shutting down to indicate a global persist should be performed.
+            </summary>
+        </member>
+        <member name="T:Jot.Triggers.ITriggerPersist">
+            <summary>
+            An interface that should be implemented by objects that determine when a global persist should be performed.
+            </summary>
+        </member>
+        <member name="E:Jot.Triggers.ITriggerPersist.PersistRequired">
+            <summary>
+            Fired when a global persist operation should be performed.
+            </summary>
+        </member>
+        <member name="T:Jot.StateTracker">
+            <summary>
+            A StateTracker is an object responsible for tracking the specified properties of the specified target objects. 
+            Tracking means persisting the values of the specified object properties, and restoring this data when appropriate.
+            </summary>
+        </member>
+        <member name="P:Jot.StateTracker.Name">
+            <summary>
+            The name of the StateTracker. Useful in tandem with [Trackable] attributes in situations with multiple state trackers, where each StateTracker is responsible for a different set of properties. 
+            </summary>
+        </member>
+        <member name="P:Jot.StateTracker.StoreFactory">
+            <summary>
+            The object that will create a data store (an implementation of IStore) for each tracked object.
+            </summary>
+        </member>
+        <member name="P:Jot.StateTracker.ConfigurationInitializers">
+             <summary>
+             A list of configuration initializers, that set up the default configuration for a given type.
+             </summary>
+             <remarks>
+            Useful for centrally setting up configurations for all instances of a type whose code you do not control. 
+            If you do control the code of the object, a more appropriate solution is to use [Trackable] attributes or implement ITrackingAware. That way, the class is self descriptive about tracking.
+             </remarks>
+        </member>
+        <member name="P:Jot.StateTracker.AutoPersistTrigger">
+            <summary>
+            The object that tells the StateTracker when to do a global Persist() of data. This will usually be on application shutdown, but this is not mandatory (e.g. can be a timer instead).
+            </summary>
+        </member>
+        <member name="M:Jot.StateTracker.#ctor">
+            <summary>
+            Creates a StateTracker that uses json files in a per-user folder to store the data.
+            Does a global persist when it detects the desktop application is closing. 
+            </summary>
+            <remarks>
+            This constructor is appropriate for most desktop application use cases. 
+            Both ObjectStoreFactory and AutoPersistTrigger properties can be set/modified.
+            </remarks>
+        </member>
+        <member name="M:Jot.StateTracker.#ctor(Jot.Storage.IStoreFactory,Jot.Triggers.ITriggerPersist)">
+            <summary>
+            Creates a new instance of the state tracker with the specified storage mechanism, and global persist trigger. 
+            </summary>
+            <remarks>
+            Even though both arguments can be set via properties, this constructor is here to make the dependencies explicit.
+            </remarks>
+            <param name="storeFactory">The factory that will create an IStore for each tracked object's data.</param>
+            <param name="persistTrigger">The object that will notify the state tracker when it should run a global persist operation. This will usually be when the application is shutting down.</param>
+        </member>
+        <member name="M:Jot.StateTracker.RegisterConfigurationInitializer(Jot.IConfigurationInitializer)">
+            <summary>
+            Registers an object that will initialize the configuration for all instances of a type.
+            </summary>
+            <remarks>
+            Only the most specific initialier will be used (for the most derived type). 
+            E.g. if there are initializers for types Window and Object, and a window is being tracked, only the Window initializer will be used. 
+            </remarks>
+            <param name="cfgInitializer">The configuration initializer to register.</param>
+        </member>
+        <member name="M:Jot.StateTracker.Configure(System.Object)">
+            <summary>
+            Gets or creates a configuration object what will control how the target object is going to be tracked (which properties, when to persist, when to apply, validation).
+            For a given target object, always returns the same configuration instance.
+            </summary>
+            <param name="target">The object whose properties your want to track.</param>
+            <returns>The tracking configuration object.</returns>
+        </member>
+        <member name="M:Jot.StateTracker.RunAutoPersist">
+            <summary>
+            Runs a global persist for all objects that are still alive and have AutoPersistEnabled=true in their TrackingConfiguration.
+            </summary>
+        </member>
+        <member name="T:Jot.TrackedPropertyInfo">
+            <summary>
+            An object that decribes the tracking information for a target object's property.
+            </summary>
+        </member>
+        <member name="P:Jot.TrackedPropertyInfo.Getter">
+            <summary>
+            Function that gets the value of the property.
+            </summary>
+        </member>
+        <member name="P:Jot.TrackedPropertyInfo.Setter">
+            <summary>
+            Action that sets the value of the property.
+            </summary>
+        </member>
+        <member name="P:Jot.TrackedPropertyInfo.IsDefaultSpecified">
+            <summary>
+            Indicates if a default value is provided for the property.
+            </summary>
+        </member>
+        <member name="P:Jot.TrackedPropertyInfo.DefaultValue">
+            <summary>
+            The value that will be applied to a tracked property if no existing persisted data is found.
+            </summary>
+        </member>
+        <member name="T:Jot.TrackingConfiguration">
+            <summary>
+            A TrackingConfiguration is an object that determines how a target object will be tracked.
+            </summary>
+        </member>
+        <member name="P:Jot.TrackingConfiguration.IsApplied">
+            <summary>
+            Indicates if previously stored data has been applied to the target object.
+            </summary>
+        </member>
+        <member name="P:Jot.TrackingConfiguration.StateTracker">
+            <summary>
+            The StateTracker that owns this tracking configuration.
+            </summary>
+        </member>
+        <member name="P:Jot.TrackingConfiguration.TargetStore">
+            <summary>
+            The store that is used to save and retrieve the target's data.
+            </summary>
+        </member>
+        <member name="P:Jot.TrackingConfiguration.TargetReference">
+            <summary>
+            A weak reference to the target object.
+            </summary>
+        </member>
+        <member name="P:Jot.TrackingConfiguration.Key">
+            <summary>
+            The identity of the target. This severs to identify which stored data belongs to which object. If not specified,
+            only the type name is used, which is fine for singletons. (check out NamingScheme)
+            </summary>
+        </member>
+        <member name="P:Jot.TrackingConfiguration.StoreNamingScheme">
+            <summary>
+            Defines format of store name. Default value is TypeNameAndKey. In that case the storename is "{typename}_{key}".
+            </summary>
+        </member>
+        <member name="P:Jot.TrackingConfiguration.TrackedProperties">
+            <summary>
+            A dictionary containing the tracked properties.
+            </summary>
+        </member>
+        <member name="P:Jot.TrackingConfiguration.AutoPersistEnabled">
+            <summary>
+            Should the target object be persisted when a global persist trigger is fired.
+            </summary>
+        </member>
+        <member name="E:Jot.TrackingConfiguration.ApplyingProperty">
+            <summary>
+            Fired before previously persisted data is applied to a property of the target object. 
+            Allows the handler to cancel applying the data to the property, as well as to modify the data that gets applied.
+            </summary>
+        </member>
+        <member name="E:Jot.TrackingConfiguration.StateApplied">
+            <summary>
+            Fired when previously persisted data is applied to target object. 
+            </summary>
+        </member>
+        <member name="E:Jot.TrackingConfiguration.PersistingProperty">
+            <summary>
+            Fired when the a property of the object is being persisted. Allows the handler to cancel persisting the property, as well as to modify the data that gets persisted.
+            </summary>
+        </member>
+        <member name="E:Jot.TrackingConfiguration.StatePersisted">
+            <summary>
+            Fired when the data for the target object is persisted.
+            </summary>
+        </member>
+        <member name="M:Jot.TrackingConfiguration.Persist">
+            <summary>
+            Reads the data from the tracked properties and saves it to the data store for the tracked object.
+            </summary>
+        </member>
+        <member name="M:Jot.TrackingConfiguration.Apply">
+            <summary>
+            Applies any previously stored data to the tracked properties of the target object.
+            </summary>
+        </member>
+        <member name="M:Jot.TrackingConfiguration.IdentifyAs(System.String,Jot.NamingScheme)">
+            <summary>
+            Sets the identity (Key) of the object. It is important to set the identity in situations
+            where you want to track multiple objects of the same type, so Jot can know which data belongs 
+            to what object. Otherwise, they will use the same data which is usually not what you want.
+            </summary>
+            <param name="key"></param>
+            <param name="storeNamingScheme"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Jot.TrackingConfiguration.AddProperties(System.String[])">
+            <summary>
+            Adds a list of properties (of the target object) to track.
+            </summary>
+            <param name="properties"></param>
+            <returns>The tracking configuration object itself, for further method chaining.</returns>
+        </member>
+        <member name="M:Jot.TrackingConfiguration.AddProperties``1(System.Linq.Expressions.Expression{System.Func{``0,System.Object}}[])">
+            <summary>
+            Adds a property (of the target object) to track.
+            </summary>
+            <typeparam name="T">The type of the target object</typeparam>
+            <param name="properties">A list of expressions that point to the properties of the target object that you want to track.</param>
+            <returns>The tracking configuration object itself, for further method chaining.</returns>
+        </member>
+        <member name="M:Jot.TrackingConfiguration.AddProperty``1(System.Linq.Expressions.Expression{System.Func{``0,System.Object}},System.Object)">
+            <summary>
+            Adds a property (of the target object) to track.
+            </summary>
+            <typeparam name="T">The type of the target object</typeparam>
+            <param name="property">Expression that points to the property of the target object that you want to track.</param>
+            <param name="defaultValue">The value that will be applied to the property if no previously stored data exists.</param>
+            <returns>The tracking configuration object itself, for further method chaining.</returns>
+        </member>
+        <member name="M:Jot.TrackingConfiguration.AddProperty``1(System.Linq.Expressions.Expression{System.Func{``0,System.Object}})">
+            <summary>
+            Adds a property (of the target object) to track.
+            </summary>
+            <typeparam name="T">The type of the target object</typeparam>
+            <param name="property">Expression that points to the property of the target object that you want to track.</param>
+            <returns>The tracking configuration object itself, for further method chaining.</returns>
+        </member>
+        <member name="M:Jot.TrackingConfiguration.AddProperty(System.String,System.Object)">
+            <summary>
+            Adds a property (of the target object) to track.
+            </summary>
+            <param name="property">The name the property of the target object that you want to track.</param>
+            <param name="defaultValue">The value that will be applied to the property if no previously stored data exists.</param>
+            <returns>The tracking configuration object itself, for further method chaining.</returns>
+        </member>
+        <member name="M:Jot.TrackingConfiguration.AddProperty(System.String)">
+            <summary>
+            Adds a property (of the target object) to track.
+            </summary>
+            <param name="property">The name the property of the target object that you want to track.</param>
+            <returns>The tracking configuration object itself, for further method chaining.</returns>
+        </member>
+        <member name="M:Jot.TrackingConfiguration.RemoveProperties(System.String[])">
+            <summary>
+            Removes a list of properties from the list of tracked properties.
+            </summary>
+            <param name="properties">The list of properties to remove from the list of tracked properties.</param>
+            <returns>The tracking configuration object itself, for further method chaining.</returns>
+        </member>
+        <member name="M:Jot.TrackingConfiguration.RemoveProperties``1(System.Linq.Expressions.Expression{System.Func{``0,System.Object}}[])">
+            <summary>
+            Removes a list of properties from the list of tracked properties.
+            </summary>
+            <typeparam name="T">Target object type.</typeparam>
+            <param name="properties">The list of expressions that point to properties (of the target object) to remove from the list of tracked properties.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Jot.TrackingConfiguration.RegisterPersistTrigger(System.String)">
+            <summary>
+            Registers the specified event of the target object as a trigger that will cause the target's data to be persisted.
+            </summary>
+            <example>
+            For a Window object, "LocationChanged" and/or "SizeChanged" would be appropriate.
+            </example>
+            <remarks>
+            The tracking configuration will subscribe to the specified even of the target object and will call Persist() when the event is fired.
+            </remarks>
+            <param name="eventName">The name of the event that will cause the target object's data to be persisted.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Jot.TrackingConfiguration.RegisterPersistTrigger(System.String,System.Object)">
+            <summary>
+            Registers the specified event of the specified object as a trigger that will cause the target's data to be persisted.
+            </summary>
+            <remarks>
+            The tracking configuration will subscribe to the specified even of the specified object and will call Persist() when the event is fired.
+            </remarks>
+            <param name="eventName">The name of the event that will cause the target object's data to be persisted.</param>
+            <param name="eventSourceObject">The object that owns the event.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Jot.TrackingConfiguration.SetAutoPersistEnabled(System.Boolean)">
+            <summary>
+            Specifies if the object should be persisted during a global persist (usually fired just before application shutdown).
+            </summary>
+            <param name="shouldAutoPersist">If true, will be persisted when global persist trigger is fired.</param>
+            <returns></returns>
+        </member>
+        <member name="T:Jot.TrackingOperationEventArgs">
+            <summary>
+            Event args for a tracking operation. Enables the handler to cancel the operation and to modify the data that will be persisted/applied.
+            </summary>
+        </member>
+        <member name="P:Jot.TrackingOperationEventArgs.Configuration">
+            <summary>
+            The TrackingConfiguration object that initiated the tracking operation.
+            </summary>
+        </member>
+        <member name="P:Jot.TrackingOperationEventArgs.Property">
+            <summary>
+            The property that is being persisted or applied to.
+            </summary>
+        </member>
+        <member name="P:Jot.TrackingOperationEventArgs.Value">
+            <summary>
+            The value that is being persited or applied.
+            </summary>
+        </member>
+        <member name="M:Jot.TrackingOperationEventArgs.#ctor(Jot.TrackingConfiguration,System.String,System.Object)">
+            <summary>
+            Creates a new instance of TrackingOperationEventArgs.
+            </summary>
+            <param name="configuration">The TrackingConfiguration object that initiated the tracking operation.</param>
+            <param name="property">The property that is being persisted or applied to.</param>
+            <param name="value">The value that is being persited or applied.</param>
+        </member>
+    </members>
+</doc>

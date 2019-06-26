@@ -1,0 +1,1 @@
+rtl_fm -M fm -l 0 -A std -p 0 -s 171k -g 10 -F 9 -f 93.2M | redsea
